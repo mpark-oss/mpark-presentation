@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apps Script 데이터 추출 자동화</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+        }
+        .nav-link.active {
+            color: #0284c7; /* text-sky-600 */
+            border-bottom-color: #0284c7;
+        }
+        .tab-button.active {
+            border-color: #0284c7;
+            background-color: #0284c7;
+            color: white;
+        }
+        .flow-step.active {
+            border-color: #0284c7;
+            background-color: #e0f2fe; /* bg-sky-100 */
+            transform: scale(1.05);
+        }
+        .flow-arrow {
+            font-size: 2rem;
+            color: #9ca3af; /* text-gray-400 */
+        }
+		.customBox {
+			padding: 2rem;
+			height: 31rem;
+		}
+		.half-highlight {
+			background: linear-gradient(to bottom, transparent 60%, #adff2f 105%);
+		}
+		.half-highlight-title {
+			background: linear-gradient(to bottom, transparent 70%, #4aa8d8 130%);
+		}
+		.start_btn {
+			margin-top : 8rem;
+		}
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div id="main-page" class="relative h-screen flex flex-col items-center justify-center text-center bg-gradient-to-b from-slate-50 to-white overflow-hidden">
+        
+		<div class="absolute top-8 left-8">
+            <img src="./Hanjin_logo.svg" alt="Hanjin Group Logo" class="h-12 sm:h-16 transition-opacity hover:opacity-75">
+        </div>
+
+		
+        <div class="px-4">
+            <p class="text-sky-600 font-semibold tracking-wide">자체 개선 활동</p>
+            <h1 class="mt-2 text-4xl sm:text-6xl font-bold text-slate-900">Apps Script를 이용한</h1>
+            <h2 class="text-4xl sm:text-6xl font-bold text-sky-600 mt-2 half-highlight-title">데이터 산출 자동화</h2>
+            
+            <div class="mt-12">
+                <p class="text-xl sm:text-2xl font-bold text-slate-800">
+                    박 명 진 대리
+                </p>
+                <p class="text-base text-slate-500 mt-1">(한진물류그룹 | 그룹사사업팀)</p>
+            </div>
+
+            <button id="start-presentation-btn" class="mt-12 bg-sky-600 text-white font-bold py-3 px-10 rounded-lg text-lg hover:bg-sky-700 transition duration-300 transform hover:scale-105 shadow-lg shadow-sky-500/20" start_btn>
+                시작하기 →
+            </button>
+        </div>
+
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 w-full px-4">
+            <div class="flex flex-col items-center">
+                <p>
+                <div class="flex items-center justify-center space-x-12">
+                    <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Google Logo" class="h-8 sm:h-9 transition-opacity hover:opacity-75">
+					<img src="./gmail-logo.svg" alt="G-Mail Logo" class="h-10 sm:h-12 transition-opacity hover:opacity-75">
+					<img src="./spread-sheet.svg" alt="Spread Sheet Logo" class="h-10 sm:h-12 transition-opacity hover:opacity-75">
+                    <img src="./apps-script-logo.png" alt="Apps Script Logo" class="h-10 sm:h-12 transition-opacity hover:opacity-75">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="presentation-page" class="hidden">
+        <header id="header" class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
+            <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-xl font-bold text-sky-600">Apps Script 데이터 산출 자동화 보고서</h1>
+                    </div>
+                    <div class="hidden md:block">
+                        <div class="ml-10 flex items-baseline space-x-4">
+                            <a href="#intro" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:text-sky-600 border-b-2 border-transparent">소개</a>
+                            <a href="#process" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:text-sky-600 border-b-2 border-transparent">동작 방식</a>
+                            <a href="#impact" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:text-sky-600 border-b-2 border-transparent">기대 효과</a>
+                            <a href="#tech" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:text-sky-600 border-b-2 border-transparent">기술 정보</a>
+                            
+                            <div class="relative" id="dropdown-container">
+                                <button id="dropdown-button" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:text-sky-600 border-b-2 border-transparent flex items-center">
+                                    <span>적용 문서 바로가기</span>
+                                    <svg class="w-4 h-4 ml-1 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+                                <div id="dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 border border-slate-200">
+                                    <a href="https://docs.google.com/spreadsheets/d/1XexNwWsqIO8ToUYVBomLfqNnbf2cD7PCp1z0dgBuFYk/edit?gid=962009802#gid=962009802" target="_blank" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 hover:text-sky-600">통합차량관제 ↗</a>
+                                    <a href="../Google Sheet & Apps Script 데이터 삽입 간편화/Apps Script 데이터 삽입 간편화_발표자료.html" target="_blank" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 hover:text-sky-600">(번외)TMS ↗</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <main>
+            <section id="intro" class="py-20 sm:py-24">
+                <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                    <h2 class="text-base font-semibold text-sky-600 tracking-wide uppercase">Google Apps Script 프로젝트</h2>
+                    <p class="mt-2 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">데이터 추출, 자동화</p>
+                    <p class="mt-6 max-w-2xl mx-auto text-lg text-slate-600">
+                        매주 반복되던 수동 데이터 추출 및 보고서 작성 업무를 자동화하여,<br> <span class="half-highlight">반복업무 시간을 단축하고 데이터 신뢰도를 향상시키는 어플리케이션 구축.</span> 
+                    </p>
+                </div>
+                <div class="container mx-auto px-4 sm:px-6 lg:px-8 mt-16">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
+                        <div class="bg-white p-8 rounded-xl shadow-md border border-gray-200">
+                            <h3 class="text-2xl font-bold text-red-600 mb-4">문제점 (As-Is)</h3>
+                            <ul class="space-y-3 text-slate-600">
+                                <li class="flex items-start"><span class="text-red-500 mr-3 mt-1">✘</span><div><strong>반복적 시간 소요:</strong> 단순 반복 작업에 매주 시간 소요</div></li>
+                                <li class="flex items-start"><span class="text-red-500 mr-3 mt-1">✘</span><div><strong>인적 오류 발생:</strong> 데이터 누락, 오기입 등 실수 발생 가능성 상존</div></li>
+                                <li class="flex items-start"><span class="text-red-500 mr-3 mt-1">✘</span><div><strong>업무 비효율성:</strong> 담당자 부재 시 업무 지연 및 데이터 확인의 어려움</div></li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-8 rounded-xl shadow-md border border-gray-200">
+                            <h3 class="text-2xl font-bold text-green-600 mb-4">개선 방안 (To-Be)</h3>
+                            <ul class="space-y-3 text-slate-600">
+                                <li class="flex items-start"><span class="text-green-500 mr-3 mt-1">✔</span><div><strong>완벽 자동화:</strong> 스케줄러를 통해 매주 데이터 자동 추출 및 시트 생성</div></li>
+                                <li class="flex items-start"><span class="text-green-500 mr-3 mt-1">✔</span><div><strong>데이터 정확성 100%:</strong> 시스템 API 연동으로 인적 오류 원천 차단</div></li>
+                                <li class="flex items-start"><span class="text-green-500 mr-3 mt-1">✔</span><div><strong>사용자 편의성:</strong> 필요시 원하는 기간을 직접 선택하여 수동 실행 가능</div></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="process" class="py-20 sm:py-24 bg-white">
+                <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="text-center">
+                        <h2 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">💡 자동화 동작 방식</h2>
+                        <p class="mt-4 max-w-2xl mx-auto text-lg text-slate-600">
+                            자동화 시스템은 5단계의 프로세스로 동작합니다.
+                        </p>
+                    </div>
+                    <div class="mt-16">
+                        <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-0">
+                            <div id="step-1" class="flow-step p-4 border-2 rounded-lg cursor-pointer transition duration-300 w-full md:w-48 text-center active">
+                                <div class="text-3xl mb-2">⏰</div>
+                                <h4 class="font-bold">1. 실행</h4>
+                                <p class="text-sm text-slate-500">자동 또는 수동</p>
+                            </div>
+                            <div class="flow-arrow hidden md:block mx-4">→</div>
+                            <div id="step-2" class="flow-step p-4 border-2 rounded-lg cursor-pointer transition duration-300 w-full md:w-48 text-center">
+                                <div class="text-3xl mb-2">📡</div>
+                                <h4 class="font-bold">2. 요청</h4>
+                                <p class="text-sm text-slate-500">API 서버 호출</p>
+                            </div>
+                            <div class="flow-arrow hidden md:block mx-4">→</div>
+                            <div id="step-3" class="flow-step p-4 border-2 rounded-lg cursor-pointer transition duration-300 w-full md:w-48 text-center">
+                                <div class="text-3xl mb-2">📦</div>
+                                <h4 class="font-bold">3. 응답</h4>
+                                <p class="text-sm text-slate-500">JSON 데이터 수신</p>
+                            </div>
+                            <div class="flow-arrow hidden md:block mx-4">→</div>
+                            <div id="step-4" class="flow-step p-4 border-2 rounded-lg cursor-pointer transition duration-300 w-full md:w-48 text-center">
+                                <div class="text-3xl mb-2">📝</div>
+                                <h4 class="font-bold">4. 작성</h4>
+                                <p class="text-sm text-slate-500">Google Sheets 작성</p>
+                            </div>
+                            <div class="flow-arrow hidden md:block mx-4">→</div>
+                            <div id="step-5" class="flow-step p-4 border-2 rounded-lg cursor-pointer transition duration-300 w-full md:w-48 text-center">
+                                <div class="text-3xl mb-2">📧</div>
+                                <h4 class="font-bold">5. 알림</h4>
+                                <p class="text-sm text-slate-500">완료 메일 발송</p>
+                            </div>
+                        </div>
+                        <div id="process-description" class="mt-12 bg-sky-50 p-8 rounded-lg min-h-[150px] border border-sky-200">
+                            <h4 id="desc-title" class="text-xl font-bold text-sky-700 mb-2">1. 실행 (Trigger)</h4>
+                            <p id="desc-content" class="text-slate-700">Google Apps Script의 시간 기반 트리거가 매주 지정된 시간에 스크립트를 자동으로 실행하거나, 사용자가 Google Sheets의 커스텀 메뉴를 통해 수동으로 실행합니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="impact" class="py-20 sm:py-24">
+                <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="text-center">
+                        <h2 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">💡 핵심 성과 및 기대 효과</h2>
+                        <p class="mt-4 max-w-2xl mx-auto text-lg text-slate-600">
+                            자동화 도입을 통해 조직 전체의 업무 효율성을 높일 수 있습니다.
+                        </p>
+                    </div>
+                    <div class="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <div class="bg-white p-8 rounded-xl shadow-md border border-gray-200 customBox">
+                            <h3 class="text-xl font-bold mb-4 text-center">주간 업무 시간 비교 (단위: 분)</h3>
+                            <div class="chart-container">
+                                <canvas id="impactChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="space-y-6">
+                            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                                <h4 class="font-bold text-lg">📈 매주 반복되는 단순 반복 작업 개선</h4>
+                                <p class="text-slate-600 mt-1">매주 데이터 추출 및 Sheet 작성, 합계/평균 계산등의 반복 작업 개선.</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                                <h4 class="font-bold text-lg">📈 데이터 신뢰도 향상</h4>
+                                <p class="text-slate-600 mt-1">시스템 자동화로 인적 오류 해결, 데이터 신뢰도 향상.</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                                <h4 class="font-bold text-lg">📈 업무 유연성 확보</h4>
+                                <p class="text-slate-600 mt-1">필요시 비정기 데이터도 즉시 추출 및 활용 가능하여 담당자 부재시 유연한 대응.</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                                <h4 class="font-bold text-lg">📈 낮은 개발 & 유지보수 난이도</h4>
+                                <p class="text-slate-600 mt-1">javascript 기반 낮은 개발 난이도로 개발 및 유지보수 용이.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-20">
+                        <div class="text-center mb-10">
+                            <h3 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">기존 방식과의 비교</h3>
+                            <p class="mt-3 max-w-xl mx-auto text-md text-slate-600">
+                                Excel 다운로드 기능과 Apps Script 방식의 도입 기대효과
+                            </p>
+                        </div>
+                        <div class="overflow-x-auto bg-white rounded-xl shadow-md border border-gray-200">
+                            <table class="min-w-full text-sm text-left">
+                                <thead class="bg-slate-100">
+                                    <tr>
+                                        <th class="p-4 font-semibold">구분</th>
+                                        <th class="p-4 font-semibold">기존 Excel 다운로드 방식</th>
+                                        <th class="p-4 font-semibold">Google Apps Script 방식</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b">
+                                        <td class="p-4 font-medium bg-slate-50">아키텍처</td>
+                                        <td class="p-4 text-slate-600">서버(WAS) 직접 운영 및 관리 필요</td>
+                                        <td class="p-4 text-sky-600 font-medium"><strong>서버리스 (Serverless)</strong>, 별도 인프라 관리 불필요</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="p-4 font-medium bg-slate-50">개발/유지보수</td>
+                                        <td class="p-4 text-slate-600">Java, Apache POI 등 전문 지식 필요, 복잡한 배포 과정</td>
+                                        <td class="p-4 text-sky-600 font-medium"><strong>JavaScript 기반</strong>의 낮은 학습 곡선, 간편한 웹 기반 배포</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="p-4 font-medium bg-slate-50">운영 비용</td>
+                                        <td class="p-4 text-slate-600">서버 호스팅 및 라이선스, 유지보수 비용 발생</td>
+                                        <td class="p-4 text-sky-600 font-medium"><strong>무료</strong> (Google 기본 제공 Quota 내)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-4 font-medium bg-slate-50">결과물 활용</td>
+                                        <td class="p-4 text-slate-600">PC에 저장되는 정적인 MS Excel 파일</td>
+                                        <td class="p-4 text-sky-600 font-medium"><strong>클라우드 기반의 실시간 공유 및 협업</strong>이 가능한 Google Sheet</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    </div>
+            </section>
+
+            <section id="tech" class="py-20 sm:py-24 bg-white">
+                <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="text-center">
+                        <h2 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">💡 기술 상세 정보</h2>
+                        <p class="mt-4 max-w-2xl mx-auto text-lg text-slate-600">
+                            본 자동화 시스템을 구현하고 운영하는 데 필요한 핵심 기술 설정 정보입니다.
+                        </p>
+                    </div>
+                    <div class="mt-12 max-w-4xl mx-auto">
+                        <div class="mb-4 flex justify-center border-b border-gray-200">
+                            <button class="tab-button active py-2 px-4 -mb-px border-b-2 font-medium text-sm" data-tab="oauth">OAuth 권한</button>
+                            <button class="tab-button py-2 px-4 -mb-px border-b-2 font-medium text-sm text-gray-500" data-tab="urlfetch">API 호출 옵션</button>
+							<button class="tab-button py-2 px-4 -mb-px border-b-2 font-medium text-sm text-gray-500" data-tab="interface">ALB 신청 절차</button>
+                            <button class="tab-button py-2 px-4 -mb-px border-b-2 font-medium text-sm text-gray-500" data-tab="server">API 서버 주요 설정</button>
+                        </div>
+                        <div id="tab-content" class="bg-slate-50 p-6 rounded-lg border">
+                            <div id="oauth" class="tab-panel">
+                                <h3 class="font-bold text-lg mb-4">Google Apps Script 권한 (OAuth Scopes)</h3>
+                                <p class="mb-6 text-slate-600">스크립트가 정상 동작하기 위해 사용자로부터 다음 Google 서비스 접근 권한 승인이 필요합니다.</p>
+                                <ul class="space-y-4">
+                                    <li><code class="bg-slate-200 text-sm p-1 rounded">script.external_request</code>: 외부 API 서버와 통신</li>
+                                    <li><code class="bg-slate-200 text-sm p-1 rounded">spreadsheets</code>: Google Sheets 읽기, 생성, 쓰기</li>
+                                    <li><code class="bg-slate-200 text-sm p-1 rounded">script.send_mail</code>: 사용자 계정으로 메일 발송</li>
+                                    <li><code class="bg-slate-200 text-sm p-1 rounded">script.container.ui</code>: 커스텀 메뉴 및 팝업창 표시</li>
+                                </ul>
+                            </div>
+                            <div id="urlfetch" class="tab-panel hidden">
+                                <h3 class="font-bold text-lg mb-4">UrlFetchApp 주요 옵션</h3>
+                                 <p class="mb-4 text-slate-600">API 서버와 안정적으로 통신하기 위한 핵심 옵션입니다.</p>
+                                <div class="bg-slate-800 text-white p-4 rounded-md text-sm font-mono overflow-x-auto">
+                                    <pre><code>const options = {
+  'method': 'post',
+  'contentType': 'application/json',
+  'muteHttpExceptions': true,
+  'validateHttpsCertificates': false,
+};</code></pre>
+                                </div>
+                                <ul class="mt-4 space-y-2 text-slate-600">
+                                    <li><strong>muteHttpExceptions: true</strong> - API 에러 발생 시 스크립트가 중단되지 않고 에러 코드를 직접 처리할 수 있게 합니다.</li>
+                                    <li><strong>validateHttpsCertificates: false</strong> - 내부망의 사설 HTTPS 인증서 사용 시 유효성 검사를 건너뜁니다. <br><small>*보안 주의* (개발 서버 통신시 필요)</small></li>
+                                </ul>
+                            </div>
+							<div id="interface" class="tab-panel hidden">
+                                <h3 class="font-bold text-lg mb-4">ALB 요청사항</h3>
+                                <ul class="space-y-3 list-disc list-inside text-slate-600">
+                                    <li><strong>1. </strong> 외부 도메인 등록 (ex. https://api-pulse.hanjin.com) </li>
+                                    <li><strong>2. </strong> 외부(internet-facing) ALB 생성</li>
+                                    <li><strong>3. </strong> ALB - EC2 (ex. ec2-lg-pulse-prd-osrm) 연결</li>
+                                </ul>
+                            </div>
+                            <div id="server" class="tab-panel hidden">
+                                <h3 class="font-bold text-lg mb-4">API 서버 주요 설정</h3>
+                                <ul class="space-y-3 list-disc list-inside text-slate-600">
+                                    <li><strong class="half-highlight">엔드포인트:</strong> 외부 도메인 URL 및 POST 메소드 지원</li>
+									<li><strong class="half-highlight">인증서:</strong> SSL 인증서 등록 필요</li>
+                                    <li><strong class="half-highlight">(중요) 방화벽 설정:</strong> Google 서버 IP 대역 전체에 대한 인바운드(Inbound) 규칙 허용</li>
+                                    <li><strong class="half-highlight">(중요) ALB 지역 제한:</strong> KR & US 모두 접근 허용</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="bg-slate-800 text-white">
+            <div class="container mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-sm">
+                <p>Google Sheets & Apps Script 데이터 추출 자동화</p>
+				<p>박명진 대리(한진물류그룹 | 그룹사사업팀)</p>
+            </div>
+        </footer>
+
+        <script>
+            // 이 스크립트는 발표 페이지의 인터랙션을 담당합니다.
+            document.addEventListener('DOMContentLoaded', function () {
+                const processSteps = {
+                    'step-1': { title: '1. 실행 (Trigger)', content: 'Google Apps Script의 시간 기반 트리거가 매주 지정된 시간에 스크립트를 자동으로 실행하거나, 사용자가 Google Sheets의 커스텀 메뉴를 통해 수동으로 실행합니다.' },
+                    'step-2': { title: '2. 요청 (Request)', content: 'UrlFetchApp 서비스를 사용하여 내부 API 서버로 데이터 조회가 필요한 기간(시작일, 종료일) 정보를 담아 안전하게 POST 방식으로 요청합니다.' },
+                    'step-3': { title: '3. 응답 (Response)', content: 'API 서버는 요청받은 기간의 데이터를 데이터베이스에서 조회한 후, Apps Script가 표준 JSON 형식으로 응답합니다.' },
+                    'step-4': { title: '4. 작성 (Process & Write)', content: 'Apps Script가 수신한 JSON 데이터를 파싱하여 Google Sheets에 자동으로 새 시트를 생성하고 데이터를 기록합니다. 헤더 스타일링, 합계/평균 등 요약 정보도 자동으로 계산하여 추가합니다.' },
+                    'step-5': { title: '5. 알림 (Notify)', content: '모든 작업이 성공적으로 완료되면 MailApp 서비스를 사용하여 담당자에게 결과 확인용 문서 링크가 포함된 이메일을 자동으로 발송합니다.' }
+                };
+                const flowSteps = document.querySelectorAll('.flow-step');
+                const descTitle = document.getElementById('desc-title');
+                const descContent = document.getElementById('desc-content');
+
+                flowSteps.forEach(step => {
+                    step.addEventListener('click', () => {
+                        flowSteps.forEach(s => s.classList.remove('active'));
+                        step.classList.add('active');
+                        const stepData = processSteps[step.id];
+                        descTitle.textContent = stepData.title;
+                        descContent.textContent = stepData.content;
+                    });
+                });
+                
+                const ctx = document.getElementById('impactChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['기존 수동 작업', '자동화 후 작업'],
+                        datasets: [{
+                            label: '주간 소요 시간 (Minutes)',
+                            data: [20, 2],
+                            backgroundColor: ['rgba(239, 68, 68, 0.6)', 'rgba(34, 197, 94, 0.6)'],
+                            borderColor: ['rgba(239, 68, 68, 1)', 'rgba(34, 197, 94, 1)'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true, title: { display: true, text: '분 (Minutes)' } } },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { callbacks: { label: function(context) { return (context.dataset.label || '') + ': ' + context.parsed.y + ' 분'; } } }
+                        }
+                    }
+                });
+
+                const tabButtons = document.querySelectorAll('.tab-button');
+                const tabPanels = document.querySelectorAll('.tab-panel');
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        tabButtons.forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+                        const targetTab = button.getAttribute('data-tab');
+                        tabPanels.forEach(panel => {
+                            if (panel.id === targetTab) {
+                                panel.classList.remove('hidden');
+                            } else {
+                                panel.classList.add('hidden');
+                            }
+                        });
+                    });
+                });
+
+                const sections = document.querySelectorAll('section');
+                const navLinks = document.querySelectorAll('a.nav-link');
+                const observerOptions = { root: null, rootMargin: '0px', threshold: 0.4 };
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            navLinks.forEach(link => {
+                                link.classList.remove('active');
+                                if (link.getAttribute('href') === `#${entry.target.id}`) {
+                                    link.classList.add('active');
+                                }
+                            });
+                        }
+                    });
+                }, observerOptions);
+                sections.forEach(section => { observer.observe(section); });
+
+                const dropdownContainer = document.getElementById('dropdown-container');
+                const dropdownButton = document.getElementById('dropdown-button');
+                const dropdownMenu = document.getElementById('dropdown-menu');
+
+                dropdownButton.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    dropdownMenu.classList.toggle('hidden');
+                });
+
+                window.addEventListener('click', function (event) {
+                    if (!dropdownContainer.contains(event.target)) {
+                        dropdownMenu.classList.add('hidden');
+                    }
+                });
+            });
+        </script>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const mainPage = document.getElementById('main-page');
+            const presentationPage = document.getElementById('presentation-page');
+            const startBtn = document.getElementById('start-presentation-btn');
+
+            startBtn.addEventListener('click', function() {
+                mainPage.classList.add('hidden');
+                presentationPage.classList.remove('hidden');
+                window.scrollTo(0, 0);
+            });
+        });
+    </script>
+</body>
+</html>
